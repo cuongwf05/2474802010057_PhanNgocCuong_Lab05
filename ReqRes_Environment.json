@@ -1,0 +1,31 @@
+{
+  "id": "bced1e3a-e588-4db7-a300-5252844663c1",
+  "name": "2474802010057_PhanNgocCuong_ReqRes_Env",
+  "values": [
+    {
+      "key": "baseUrl",
+      "value": "https://reqres.in",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "api_key",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
