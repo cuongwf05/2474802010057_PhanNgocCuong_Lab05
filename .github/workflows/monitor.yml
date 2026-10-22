@@ -1,0 +1,19 @@
+name: ReqRes availability monitor
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check availability and response time
+        env:
+          REQRES_API_KEY: ${{ secrets.REQRES_API_KEY }}
+        run: |
+          result=$(curl --silent --show-error --output /dev/null --write-out "%{http_code} %{time_total}" --header "x-api-key: $REQRES_API_KEY" https://reqres.in/api/users?page=1)
+          read -r status seconds <<< "$result"
+          echo "HTTP status: $status"
+          echo "Response time: ${seconds}s"
+          test "$status" = "200"
+          awk -v s="$seconds" 'BEGIN { exit !(s < 0.8) }'
