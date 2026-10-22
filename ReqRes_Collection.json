@@ -1,0 +1,307 @@
+{
+  "info": {
+    "_postman_id": "b07fecf4-05e0-46b2-b325-2d5e98d93cd3",
+    "name": "2474802010057_PhanNgocCuong_ReqRes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Lab 05 requirements 2–4. Run with users.csv (3 iterations). GET uses fixture ID 2 because classic API does not persist created users; PUT/DELETE retain dynamic userId."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const key = pm.environment.get(\"api_key\");",
+          "if (key) pm.request.headers.upsert({key: \"x-api-key\", value: key});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Positive_Cases",
+      "item": [
+        {
+          "name": "01 - Register User / Get Auth Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"eve.holt@reqres.in\",\n  \"password\": \"pistol\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.unset(\"userToken\");",
+                  "pm.environment.unset(\"userId\");"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Token is non-empty\", () => pm.expect(data.token).to.be.a(\"string\").and.not.empty);",
+                  "if (pm.response.code === 200 && data.token) pm.environment.set(\"userToken\", data.token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "02 - Create User (Data-Driven)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{name}}\",\n  \"job\": \"{{job}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
+                  "const data = pm.response.json();",
+                  "pm.test(\"Name matches CSV\", () => pm.expect(data.name).to.eql(pm.iterationData.get(\"name\")));",
+                  "pm.test(\"Job matches CSV\", () => pm.expect(data.job).to.eql(pm.iterationData.get(\"job\")));",
+                  "pm.test(\"Created ID exists\", () => pm.expect(data.id).to.exist);",
+                  "if (pm.response.code === 201 && data.id) pm.environment.set(\"userId\", data.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "03 - Get Single User (fixture ID 2)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/2"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "const data = pm.response.json().data;",
+                  "pm.test(\"User ID is 2\", () => pm.expect(data.id).to.eql(2));",
+                  "pm.test(\"Email ends with @reqres.in\", () => pm.expect(data.email).to.match(/@reqres\\.in$/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "04 - Update User (dynamic ID)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"An Nguyen Updated\",\n  \"job\": \"QA Manager\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"updatedAt exists\", () => pm.expect(pm.response.json()).to.have.property(\"updatedAt\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "05 - Delete User (dynamic ID)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/{{userId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 204\", () => pm.response.to.have.status(204));",
+                  "pm.test(\"Response body is empty\", () => pm.expect(pm.response.text()).to.eql(\"\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negative_Cases",
+      "item": [
+        {
+          "name": "06 - Register Unsuccessful",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"eve.holt@reqres.in\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Missing password\", () => pm.expect(pm.response.json().error).to.eql(\"Missing password\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "07 - Login Unsuccessful",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 400\", () => pm.response.to.have.status(400));",
+                  "pm.test(\"Missing email or username\", () => pm.expect(pm.response.json().error).to.eql(\"Missing email or username\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "08 - User Not Found",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/users/23"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 404\", () => pm.response.to.have.status(404));",
+                  "pm.test(\"Response is an empty object\", () => pm.expect(pm.response.json()).to.deep.eql({}));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
