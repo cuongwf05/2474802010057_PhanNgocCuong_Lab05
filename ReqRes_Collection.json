@@ -59,7 +59,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Token is non-empty\", () => pm.expect(data.token).to.be.a(\"string\").and.not.empty);",
                   "if (pm.response.code === 200 && data.token) pm.environment.set(\"userToken\", data.token);"
                 ]
@@ -99,7 +99,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status code is 201\", () => pm.response.to.have.status(201));",
-                  "const data = pm.response.json();",
+                  "var data = pm.response.json();",
                   "pm.test(\"Name matches CSV\", () => pm.expect(data.name).to.eql(pm.iterationData.get(\"name\")));",
                   "pm.test(\"Job matches CSV\", () => pm.expect(data.job).to.eql(pm.iterationData.get(\"job\")));",
                   "pm.test(\"Created ID exists\", () => pm.expect(data.id).to.exist);",
@@ -128,7 +128,7 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test(\"Status code is 200\", () => pm.response.to.have.status(200));",
-                  "const data = pm.response.json().data;",
+                  "var data = pm.response.json().data;",
                   "pm.test(\"User ID is 2\", () => pm.expect(data.id).to.eql(2));",
                   "pm.test(\"Email ends with @reqres.in\", () => pm.expect(data.email).to.match(/@reqres\\.in$/));"
                 ]
